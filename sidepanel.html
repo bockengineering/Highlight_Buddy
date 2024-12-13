@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Highlighter</title>
+    <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="header">
+            <div class="search-container">
+                <input type="text" id="search" placeholder="Search...">
+            </div>
+        </div>
+        
+        <div class="highlights-container">
+            <!-- Pages List View -->
+            <div id="pages-view" class="view">
+                <div class="date-section">
+                    <h3>Today</h3>
+                    <div id="today-highlights" class="pages-list"></div>
+                </div>
+                <div class="date-section">
+                    <h3>November</h3>
+                    <div id="monthly-highlights" class="pages-list"></div>
+                </div>
+            </div>
+            
+            <!-- Single Page View -->
+            <div id="page-highlights-view" class="view hidden">
+                <div class="page-header">
+                    <button class="back-button">←</button>
+                    <h2 class="page-title"></h2>
+                </div>
+                <div id="page-highlights" class="highlights-list"></div>
+            </div>
+        </div>
+    </div>
+    <script src="sidepanel.js"></script>
+</body>
+</html> 

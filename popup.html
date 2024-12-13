@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 400px;
+      min-height: 500px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1f2b;
+      color: #fff;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 8px;
+      background: #2a2f3b;
+      border: 1px solid #3a3f4b;
+      border-radius: 4px;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .month-section {
+      margin-bottom: 24px;
+    }
+
+    .month-header {
+      font-size: 14px;
+      color: #8899aa;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .highlight-entry {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px solid #2a2f3b;
+      text-decoration: none;
+      color: white;
+    }
+
+    .entry-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 12px;
+      border-radius: 3px;
+      background: #3a3f4b;
+    }
+
+    .entry-content {
+      flex: 1;
+    }
+
+    .entry-title {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .entry-url {
+      font-size: 12px;
+      color: #8899aa;
+    }
+
+    .entry-stats {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: #8899aa;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" class="search-bar" placeholder="Search...">
+  <div id="highlights-list"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

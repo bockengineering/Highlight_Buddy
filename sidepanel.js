@@ -9,9 +9,9 @@ async function loadHighlights() {
 
 function displayPagesList() {
     const todayContainer = document.getElementById('today-highlights');
-    const monthlyContainer = document.getElementById('monthly-highlights');
+    if (!todayContainer) return; // Guard against null container
+    
     todayContainer.innerHTML = '';
-    monthlyContainer.innerHTML = '';
     
     // Group highlights by URL and date
     const today = new Date().toDateString();
@@ -66,6 +66,8 @@ function displayPagesList() {
     const todaySection = document.getElementById('today-section');
     const todayHighlights = document.getElementById('today-highlights');
     
+    if (!todayHighlights) return; // Guard against null container
+    
     sortedPages.forEach(page => {
         const pageEntry = document.createElement('div');
         pageEntry.className = 'page-entry';
@@ -88,14 +90,15 @@ function displayPagesList() {
             showPageHighlights(page);
         });
         
-        if (page.date.toDateString() === today) {
-            todayHighlights.appendChild(pageEntry);
-        }
+        // Add all entries to today's section for now
+        todayHighlights.appendChild(pageEntry);
     });
     
     // Only show Today section if there are highlights
-    if (!todayHighlights.hasChildNodes()) {
+    if (todaySection && !todayHighlights.hasChildNodes()) {
         todaySection.style.display = 'none';
+    } else if (todaySection) {
+        todaySection.style.display = 'block';
     }
 }
 
@@ -111,10 +114,46 @@ function showPageHighlights(page) {
     const container = document.getElementById('page-highlights');
     container.innerHTML = '';
     
+    // Add page info section
+    const pageInfo = document.createElement('div');
+    pageInfo.className = 'page-info';
+    
+    // Try to get page meta image, fallback to favicon
+    const pageImage = page.favicon;
+    const hostname = new URL(page.url).hostname;
+    
+    pageInfo.innerHTML = `
+        <div class="page-info-header">
+            <img src="${pageImage}" alt="${page.title}">
+            <a href="${page.url}" class="page-info-title" target="_blank">${page.title}</a>
+        </div>
+        <div class="page-info-url">${hostname}</div>
+        <div class="page-info-stats">
+            <div class="page-info-stat">
+                <span class="stat-value">${page.highlights.length}</span>
+                <span class="stat-label">Highlights</span>
+            </div>
+            <div class="page-info-stat">
+                <span class="stat-value">${page.noteCount || 0}</span>
+                <span class="stat-label">Notes</span>
+            </div>
+            <div class="page-info-stat">
+                <span class="stat-value">${formatDate(page.highlights[0].timestamp)}</span>
+                <span class="stat-label">Last Updated</span>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(pageInfo);
+    
     if (page.highlights.length === 0) {
-        container.innerHTML = '<div class="no-highlights">No highlights yet</div>';
+        container.innerHTML += '<div class="no-highlights">No highlights yet</div>';
         return;
     }
+    
+    // Create highlights container
+    const highlightsContainer = document.createElement('div');
+    highlightsContainer.className = 'highlights-list';
     
     page.highlights.forEach(highlight => {
         const entry = document.createElement('div');
@@ -142,7 +181,7 @@ function showPageHighlights(page) {
             ${noteContent}
             <div class="entry-meta">
                 <span>${formatDate(highlight.timestamp)}</span>
-                <span>${new URL(highlight.url).hostname}</span>
+                <span>${hostname}</span>
             </div>
         `;
         
@@ -184,24 +223,17 @@ function showPageHighlights(page) {
         
         // Add click handler for navigation
         entry.addEventListener('click', (e) => {
+            // Don't navigate if clicking within note section
             if (e.target.closest('.note-section')) return;
             
-            // Send message to content script to scroll to and focus the highlight
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {
-                    action: 'scrollToHighlight',
-                    timestamp: highlight.timestamp
-                });
-            });
-            
-            // Open in new tab if middle click or ctrl/cmd click
-            if (e.ctrlKey || e.metaKey || e.button === 1) {
-                chrome.tabs.create({ url: highlight.url });
-            }
+            // Navigate to the page
+            chrome.tabs.create({ url: page.url });
         });
         
-        container.appendChild(entry);
+        highlightsContainer.appendChild(entry);
     });
+    
+    container.appendChild(highlightsContainer);
 }
 
 async function saveNote(highlight, noteText) {
@@ -263,22 +295,43 @@ function setupEditNoteHandler(noteSection, highlight) {
     });
 }
 
-// Update search functionality to search through highlight text
+// Update search functionality to search through highlight text and notes
 document.getElementById('search').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase().trim();
     
     if (searchTerm === '') {
-        // Reset to show all highlights when search is cleared
-        document.getElementById('pages-view').classList.remove('hidden');
-        document.getElementById('page-highlights-view').classList.add('hidden');
+        // Reconstruct the entire view when search is cleared
+        document.querySelector('.highlights-container').innerHTML = `
+            <div id="pages-view" class="view">
+                <div class="date-section" id="today-section">
+                    <h3>Today</h3>
+                    <div id="today-highlights"></div>
+                </div>
+            </div>
+            <div id="page-highlights-view" class="view hidden">
+                <div class="page-header">
+                    <button class="back-button">Back</button>
+                    <h2 class="page-title"></h2>
+                </div>
+                <div id="page-highlights" class="highlights-list"></div>
+            </div>
+        `;
+        
+        // Add back button listener
+        document.querySelector('.back-button').addEventListener('click', () => {
+            document.getElementById('page-highlights-view').classList.add('hidden');
+            document.getElementById('pages-view').classList.remove('hidden');
+        });
+        
         displayPagesList();
         return;
     }
 
-    // Filter highlights that match the search term
+    // Filter highlights that match the search term in text, title, or notes
     const filteredHighlights = allHighlights.filter(h => 
         h.text.toLowerCase().includes(searchTerm) ||
-        h.title.toLowerCase().includes(searchTerm)
+        h.title.toLowerCase().includes(searchTerm) ||
+        (h.note && h.note.toLowerCase().includes(searchTerm))
     );
 
     // Group filtered highlights by URL

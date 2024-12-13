@@ -1,34 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Web Highlighter</title>
+    <title>AB Highlighter</title>
     <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
     <div class="sidebar">
+        <div class="nav-bar">
+            <div class="nav-icon active" data-view="home">
+                <img src="icons/home.svg" alt="Home">
+            </div>
+            <div class="nav-icon" data-view="tags">
+                <img src="icons/tag.svg" alt="Tags">
+            </div>
+            <div class="nav-icon" data-view="notes">
+                <img src="icons/edit.svg" alt="Notes">
+            </div>
+            <div class="nav-icon" data-view="search">
+                <img src="icons/search.svg" alt="Search">
+            </div>
+            <div class="nav-icon" style="margin-left: auto;">
+                <img src="icons/bell.svg" alt="Notifications">
+            </div>
+        </div>
+        
         <div class="header">
             <div class="search-container">
+                <img src="icons/search.svg" alt="Search" class="search-icon">
                 <input type="text" id="search" placeholder="Search...">
             </div>
         </div>
         
         <div class="highlights-container">
-            <!-- Pages List View -->
-            <div id="pages-view" class="view">
-                <div class="date-section">
-                    <h3>Today</h3>
-                    <div id="today-highlights" class="pages-list"></div>
-                </div>
-                <div class="date-section">
-                    <h3>November</h3>
-                    <div id="monthly-highlights" class="pages-list"></div>
+            <!-- Home View -->
+            <div id="home-view" class="view">
+                <div class="date-section" id="today-section">
+                    <h3>This month</h3>
+                    <div id="today-highlights"></div>
                 </div>
             </div>
             
-            <!-- Single Page View -->
+            <!-- Tags View -->
+            <div id="tags-view" class="view hidden">
+                <div class="color-filters">
+                    <div class="color-filter" style="--filter-color: #ffeb3b">Yellow</div>
+                    <div class="color-filter" style="--filter-color: #4caf50">Green</div>
+                    <div class="color-filter" style="--filter-color: #2196f3">Blue</div>
+                    <div class="color-filter" style="--filter-color: #9c27b0">Purple</div>
+                    <div class="color-filter" style="--filter-color: #f44336">Red</div>
+                    <div class="color-filter" style="--filter-color: #ff9800">Orange</div>
+                </div>
+                <div id="color-filtered-highlights"></div>
+            </div>
+            
+            <!-- Notes View -->
+            <div id="notes-view" class="view hidden">
+                <div id="notes-list"></div>
+            </div>
+            
+            <!-- Page Highlights View -->
             <div id="page-highlights-view" class="view hidden">
                 <div class="page-header">
-                    <button class="back-button">←</button>
+                    <button class="back-button">Back</button>
                     <h2 class="page-title"></h2>
                 </div>
                 <div id="page-highlights" class="highlights-list"></div>

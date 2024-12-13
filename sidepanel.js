@@ -1,5 +1,154 @@
-let currentView = 'pages';
+let currentView = 'home';
 let allHighlights = [];
+let activeColorFilter = null;
+
+// Handle navigation
+document.querySelectorAll('.nav-icon').forEach(icon => {
+    icon.addEventListener('click', () => {
+        const view = icon.dataset.view;
+        if (!view) return;
+        
+        // Update active states
+        document.querySelectorAll('.nav-icon').forEach(i => i.classList.remove('active'));
+        icon.classList.add('active');
+        
+        // Hide all views
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        
+        // Show selected view
+        const viewElement = document.getElementById(`${view}-view`);
+        if (viewElement) {
+            viewElement.classList.add('active');
+            currentView = view;
+            
+            // Load view-specific content
+            if (view === 'tags') {
+                displayColorFilteredHighlights();
+            } else if (view === 'notes') {
+                displayNotesView();
+            } else if (view === 'home') {
+                displayPagesList();
+            }
+        }
+    });
+});
+
+// Handle color filters
+document.querySelectorAll('.color-filter').forEach(filter => {
+    filter.addEventListener('click', () => {
+        const wasActive = filter.classList.contains('active');
+        document.querySelectorAll('.color-filter').forEach(f => f.classList.remove('active'));
+        
+        if (!wasActive) {
+            filter.classList.add('active');
+            activeColorFilter = filter.style.getPropertyValue('--filter-color');
+        } else {
+            activeColorFilter = null;
+        }
+        
+        displayColorFilteredHighlights();
+    });
+});
+
+function displayColorFilteredHighlights() {
+    const container = document.getElementById('color-filtered-highlights');
+    if (!container) return;
+    
+    const filteredHighlights = activeColorFilter ? 
+        allHighlights.filter(h => h.color === activeColorFilter) :
+        allHighlights;
+    
+    container.innerHTML = '';
+    
+    if (filteredHighlights.length === 0) {
+        container.innerHTML = '<div class="no-highlights">No highlights found</div>';
+        return;
+    }
+    
+    // Group by page
+    const groupedHighlights = filteredHighlights.reduce((acc, highlight) => {
+        if (!acc[highlight.url]) {
+            acc[highlight.url] = {
+                title: highlight.title,
+                url: highlight.url,
+                highlights: [],
+                favicon: `https://www.google.com/s2/favicons?domain=${new URL(highlight.url).hostname}`
+            };
+        }
+        acc[highlight.url].highlights.push(highlight);
+        return acc;
+    }, {});
+    
+    Object.values(groupedHighlights).forEach(page => {
+        const pageSection = document.createElement('div');
+        pageSection.className = 'page-section';
+        
+        pageSection.innerHTML = `
+            <div class="page-info">
+                <div class="page-info-header">
+                    <img src="${page.favicon}" alt="${page.title}">
+                    <a href="${page.url}" class="page-info-title" target="_blank">${page.title}</a>
+                </div>
+            </div>
+        `;
+        
+        const highlightsList = document.createElement('div');
+        highlightsList.className = 'highlights-list';
+        
+        page.highlights.forEach(highlight => {
+            const entry = document.createElement('div');
+            entry.className = 'highlight-entry';
+            entry.style.setProperty('--highlight-color', highlight.color || '#ffeb3b');
+            
+            entry.innerHTML = `
+                <div class="entry-text">${highlight.text}</div>
+                ${highlight.note ? `
+                    <div class="note-section">
+                        <div class="saved-note">${highlight.note}</div>
+                    </div>
+                ` : ''}
+            `;
+            
+            highlightsList.appendChild(entry);
+        });
+        
+        pageSection.appendChild(highlightsList);
+        container.appendChild(pageSection);
+    });
+}
+
+function displayNotesView() {
+    const container = document.getElementById('notes-list');
+    if (!container) return;
+    
+    const highlightsWithNotes = allHighlights.filter(h => h.note);
+    
+    container.innerHTML = '';
+    
+    if (highlightsWithNotes.length === 0) {
+        container.innerHTML = '<div class="no-highlights">No notes found</div>';
+        return;
+    }
+    
+    highlightsWithNotes.forEach(highlight => {
+        const entry = document.createElement('div');
+        entry.className = 'highlight-entry';
+        entry.style.setProperty('--highlight-color', highlight.color || '#ffeb3b');
+        
+        entry.innerHTML = `
+            <div class="entry-text">${highlight.text}</div>
+            <div class="note-section">
+                <div class="saved-note">${highlight.note}</div>
+            </div>
+            <div class="entry-meta">
+                <span>${formatDate(highlight.timestamp)}</span>
+                <span>${new URL(highlight.url).hostname}</span>
+            </div>
+        `;
+        
+        container.appendChild(entry);
+    });
+}
 
 async function loadHighlights() {
     const { highlights = [] } = await chrome.storage.local.get('highlights');
@@ -9,12 +158,36 @@ async function loadHighlights() {
 
 function displayPagesList() {
     const todayContainer = document.getElementById('today-highlights');
-    if (!todayContainer) return; // Guard against null container
+    if (!todayContainer) return;
     
-    todayContainer.innerHTML = '';
+    // Clear previous content and ensure search is cleared
+    document.getElementById('search').value = '';
+    
+    // Create the view structure
+    document.querySelector('.highlights-container').innerHTML = `
+        <div id="home-view" class="view active">
+            <div class="date-section" id="today-section">
+                <h3>This month</h3>
+                <div id="today-highlights"></div>
+            </div>
+        </div>
+        <div id="page-highlights-view" class="view">
+            <div class="page-header">
+                <button class="back-button">Back</button>
+                <h2 class="page-title"></h2>
+            </div>
+            <div id="page-highlights" class="highlights-list"></div>
+        </div>
+    `;
+    
+    // Add back button listener
+    document.querySelector('.back-button').addEventListener('click', () => {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('home-view').classList.add('active');
+        currentView = 'home';
+    });
     
     // Group highlights by URL and date
-    const today = new Date().toDateString();
     const pageGroups = allHighlights.reduce((acc, highlight) => {
         if (!acc[highlight.url]) {
             acc[highlight.url] = {
@@ -37,36 +210,9 @@ function displayPagesList() {
     // Sort pages by date (newest first)
     const sortedPages = Object.values(pageGroups).sort((a, b) => b.date - a.date);
     
-    // Clear previous content and ensure search is cleared
-    document.getElementById('search').value = '';
-    
-    document.querySelector('.highlights-container').innerHTML = `
-        <div id="pages-view" class="view">
-            <div class="date-section" id="today-section">
-                <h3>Today</h3>
-                <div id="today-highlights"></div>
-            </div>
-        </div>
-        <div id="page-highlights-view" class="view hidden">
-            <div class="page-header">
-                <button class="back-button">Back</button>
-                <h2 class="page-title"></h2>
-            </div>
-            <div id="page-highlights" class="highlights-list"></div>
-        </div>
-    `;
-    
-    // Add back button listener after creating the element
-    document.querySelector('.back-button').addEventListener('click', () => {
-        document.getElementById('page-highlights-view').classList.add('hidden');
-        document.getElementById('pages-view').classList.remove('hidden');
-    });
-    
-    // Re-get containers after recreating the DOM
-    const todaySection = document.getElementById('today-section');
+    // Re-get container after recreating the DOM
     const todayHighlights = document.getElementById('today-highlights');
-    
-    if (!todayHighlights) return; // Guard against null container
+    if (!todayHighlights) return;
     
     sortedPages.forEach(page => {
         const pageEntry = document.createElement('div');
@@ -81,8 +227,12 @@ function displayPagesList() {
                 ${page.title}
             </div>
             <div class="page-entry-stats">
-                <span>${highlightCount} Highlight${highlightCount !== 1 ? 's' : ''}</span>
-                <span>${noteCount} Note${noteCount !== 1 ? 's' : ''}</span>
+                <div class="stat-box">
+                    ${highlightCount} <span>Highlight${highlightCount !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="stat-box">
+                    ${noteCount} <span>Note${noteCount !== 1 ? 's' : ''}</span>
+                </div>
             </div>
         `;
         
@@ -90,22 +240,25 @@ function displayPagesList() {
             showPageHighlights(page);
         });
         
-        // Add all entries to today's section for now
         todayHighlights.appendChild(pageEntry);
     });
     
-    // Only show Today section if there are highlights
-    if (todaySection && !todayHighlights.hasChildNodes()) {
-        todaySection.style.display = 'none';
-    } else if (todaySection) {
-        todaySection.style.display = 'block';
+    // Show/hide the section based on content
+    const todaySection = document.getElementById('today-section');
+    if (todaySection) {
+        todaySection.style.display = todayHighlights.hasChildNodes() ? 'block' : 'none';
     }
 }
 
 function showPageHighlights(page) {
     currentView = 'highlights';
-    document.getElementById('pages-view').classList.add('hidden');
-    document.getElementById('page-highlights-view').classList.remove('hidden');
+    
+    // Hide all views first
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    
+    // Show the page highlights view
+    const pageHighlightsView = document.getElementById('page-highlights-view');
+    pageHighlightsView.classList.add('active');
     
     // Set page title
     document.querySelector('.page-title').textContent = page.title;
@@ -295,20 +448,20 @@ function setupEditNoteHandler(noteSection, highlight) {
     });
 }
 
-// Update search functionality to search through highlight text and notes
+// Update search functionality to match the new view structure
 document.getElementById('search').addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase().trim();
     
     if (searchTerm === '') {
-        // Reconstruct the entire view when search is cleared
+        // Reset the view when search is cleared
         document.querySelector('.highlights-container').innerHTML = `
-            <div id="pages-view" class="view">
+            <div id="home-view" class="view active">
                 <div class="date-section" id="today-section">
-                    <h3>Today</h3>
+                    <h3>This month</h3>
                     <div id="today-highlights"></div>
                 </div>
             </div>
-            <div id="page-highlights-view" class="view hidden">
+            <div id="page-highlights-view" class="view">
                 <div class="page-header">
                     <button class="back-button">Back</button>
                     <h2 class="page-title"></h2>
@@ -319,8 +472,9 @@ document.getElementById('search').addEventListener('input', (e) => {
         
         // Add back button listener
         document.querySelector('.back-button').addEventListener('click', () => {
-            document.getElementById('page-highlights-view').classList.add('hidden');
-            document.getElementById('pages-view').classList.remove('hidden');
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('home-view').classList.add('active');
+            currentView = 'home';
         });
         
         displayPagesList();
@@ -371,8 +525,12 @@ document.getElementById('search').addEventListener('input', (e) => {
                 ${page.title}
             </div>
             <div class="page-entry-stats">
-                <span>${highlightCount} Highlight${highlightCount !== 1 ? 's' : ''}</span>
-                <span>${page.noteCount} Note${page.noteCount !== 1 ? 's' : ''}</span>
+                <div class="stat-box">
+                    ${highlightCount} <span>Highlight${highlightCount !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="stat-box">
+                    ${page.noteCount} <span>Note${page.noteCount !== 1 ? 's' : ''}</span>
+                </div>
             </div>
         `;
         
@@ -406,3 +564,12 @@ function formatDate(date) {
         day: 'numeric'
     }).format(inputDate);
 }
+
+// Update back button handler
+document.querySelector('.back-button').addEventListener('click', () => {
+    // Hide all views
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    // Show home view
+    document.getElementById('home-view').classList.add('active');
+    currentView = 'home';
+});

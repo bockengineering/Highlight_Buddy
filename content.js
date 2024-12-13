@@ -211,3 +211,55 @@ function createSidePanelButton() {
     });
     document.body.appendChild(button);
 }
+
+// Create an Intersection Observer to handle highlight visibility
+const observeHighlights = () => {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const highlight = entry.target;
+                const color = highlight.dataset.color || '#ffeb3b';
+                highlight.style.backgroundColor = color;
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '100px', // Start loading slightly before they come into view
+        threshold: 0.1
+    });
+
+    // Observe all highlights
+    document.querySelectorAll('.web-highlighter-mark').forEach(highlight => {
+        observer.observe(highlight);
+    });
+};
+
+// Initialize observer for existing highlights
+document.addEventListener('DOMContentLoaded', observeHighlights);
+// Also observe after any dynamic content loads
+window.addEventListener('load', observeHighlights);
+
+// Listen for messages from the sidebar
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'scrollToHighlight') {
+        const highlightElements = document.querySelectorAll('.web-highlighter-mark');
+        const targetHighlight = Array.from(highlightElements)
+            .find(el => el.dataset.highlightId === request.timestamp);
+        
+        if (targetHighlight) {
+            // Smooth scroll to element
+            targetHighlight.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Add a brief highlight effect
+            targetHighlight.style.transition = 'background-color 0.3s';
+            const originalColor = targetHighlight.style.backgroundColor;
+            targetHighlight.style.backgroundColor = '#ffeb3b80';
+            setTimeout(() => {
+                targetHighlight.style.backgroundColor = originalColor;
+            }, 1000);
+        }
+    }
+});

@@ -22,18 +22,56 @@ function displayPagesList() {
                 url: highlight.url,
                 highlights: [],
                 favicon: `https://www.google.com/s2/favicons?domain=${new URL(highlight.url).hostname}`,
-                date: new Date(highlight.timestamp).toDateString()
+                date: new Date(highlight.timestamp)
             };
         }
         acc[highlight.url].highlights.push(highlight);
         return acc;
     }, {});
     
+    // Count notes for each page
     Object.values(pageGroups).forEach(page => {
+        page.noteCount = page.highlights.filter(h => h.note).length;
+    });
+    
+    // Sort pages by date (newest first)
+    const sortedPages = Object.values(pageGroups).sort((a, b) => b.date - a.date);
+    
+    // Clear previous content and ensure search is cleared
+    document.getElementById('search').value = '';
+    
+    document.querySelector('.highlights-container').innerHTML = `
+        <div id="pages-view" class="view">
+            <div class="date-section" id="today-section">
+                <h3>Today</h3>
+                <div id="today-highlights"></div>
+            </div>
+        </div>
+        <div id="page-highlights-view" class="view hidden">
+            <div class="page-header">
+                <button class="back-button">Back</button>
+                <h2 class="page-title"></h2>
+            </div>
+            <div id="page-highlights" class="highlights-list"></div>
+        </div>
+    `;
+    
+    // Add back button listener after creating the element
+    document.querySelector('.back-button').addEventListener('click', () => {
+        document.getElementById('page-highlights-view').classList.add('hidden');
+        document.getElementById('pages-view').classList.remove('hidden');
+    });
+    
+    // Re-get containers after recreating the DOM
+    const todaySection = document.getElementById('today-section');
+    const todayHighlights = document.getElementById('today-highlights');
+    
+    sortedPages.forEach(page => {
         const pageEntry = document.createElement('div');
         pageEntry.className = 'page-entry';
         
         const highlightCount = page.highlights.length;
+        const noteCount = page.noteCount;
         
         pageEntry.innerHTML = `
             <div class="page-entry-title">
@@ -42,7 +80,7 @@ function displayPagesList() {
             </div>
             <div class="page-entry-stats">
                 <span>${highlightCount} Highlight${highlightCount !== 1 ? 's' : ''}</span>
-                <span>0 Notes</span>
+                <span>${noteCount} Note${noteCount !== 1 ? 's' : ''}</span>
             </div>
         `;
         
@@ -50,12 +88,15 @@ function displayPagesList() {
             showPageHighlights(page);
         });
         
-        if (page.date === today) {
-            todayContainer.appendChild(pageEntry);
-        } else {
-            monthlyContainer.appendChild(pageEntry);
+        if (page.date.toDateString() === today) {
+            todayHighlights.appendChild(pageEntry);
         }
     });
+    
+    // Only show Today section if there are highlights
+    if (!todayHighlights.hasChildNodes()) {
+        todaySection.style.display = 'none';
+    }
 }
 
 function showPageHighlights(page) {
@@ -80,39 +121,217 @@ function showPageHighlights(page) {
         entry.className = 'highlight-entry';
         entry.style.setProperty('--highlight-color', highlight.color || '#ffeb3b');
         
+        const noteContent = highlight.note ? 
+            `<div class="note-section">
+                <div class="note-header">
+                    <span class="note-label">Note</span>
+                    <button class="edit-note">Edit</button>
+                </div>
+                <div class="saved-note">${highlight.note}</div>
+             </div>` :
+            `<div class="note-section collapsed">
+                <div class="note-header">
+                    <span class="note-label">Add a note</span>
+                    <button class="save-note hidden">Save</button>
+                </div>
+                <textarea class="note-input hidden" placeholder="Type your note here..."></textarea>
+             </div>`;
+        
         entry.innerHTML = `
             <div class="entry-text">${highlight.text}</div>
+            ${noteContent}
             <div class="entry-meta">
                 <span>${formatDate(highlight.timestamp)}</span>
                 <span>${new URL(highlight.url).hostname}</span>
             </div>
         `;
         
-        entry.addEventListener('click', () => {
-            chrome.tabs.create({ url: highlight.url });
+        // Handle note interactions
+        const noteSection = entry.querySelector('.note-section');
+        const noteLabel = entry.querySelector('.note-label');
+        
+        if (!highlight.note) {
+            // Handle adding new note
+            noteLabel.addEventListener('click', () => {
+                noteSection.classList.remove('collapsed');
+                const noteInput = noteSection.querySelector('.note-input');
+                const saveBtn = noteSection.querySelector('.save-note');
+                noteInput.classList.remove('hidden');
+                saveBtn.classList.remove('hidden');
+            });
+            
+            const saveBtn = entry.querySelector('.save-note');
+            const noteInput = entry.querySelector('.note-input');
+            
+            saveBtn.addEventListener('click', async () => {
+                const noteText = noteInput.value.trim();
+                if (!noteText) return;
+                
+                await saveNote(highlight, noteText);
+                noteSection.innerHTML = `
+                    <div class="note-header">
+                        <span class="note-label">Note</span>
+                        <button class="edit-note">Edit</button>
+                    </div>
+                    <div class="saved-note">${noteText}</div>
+                `;
+                setupEditNoteHandler(noteSection, highlight);
+            });
+        } else {
+            // Setup edit functionality for existing note
+            setupEditNoteHandler(noteSection, highlight);
+        }
+        
+        // Add click handler for navigation
+        entry.addEventListener('click', (e) => {
+            if (e.target.closest('.note-section')) return;
+            
+            // Send message to content script to scroll to and focus the highlight
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, {
+                    action: 'scrollToHighlight',
+                    timestamp: highlight.timestamp
+                });
+            });
+            
+            // Open in new tab if middle click or ctrl/cmd click
+            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                chrome.tabs.create({ url: highlight.url });
+            }
         });
         
         container.appendChild(entry);
     });
 }
 
-// Back button handler
-document.querySelector('.back-button').addEventListener('click', () => {
-    currentView = 'pages';
-    document.getElementById('page-highlights-view').classList.add('hidden');
-    document.getElementById('pages-view').classList.remove('hidden');
-});
+async function saveNote(highlight, noteText) {
+    highlight.note = noteText;
+    const { highlights = [] } = await chrome.storage.local.get('highlights');
+    const updatedHighlights = highlights.map(h => 
+        h.timestamp === highlight.timestamp && h.url === highlight.url ? 
+        { ...h, note: noteText } : h
+    );
+    
+    await chrome.storage.local.set({ highlights: updatedHighlights });
+    allHighlights = updatedHighlights;
+}
 
-// Search functionality
+function setupEditNoteHandler(noteSection, highlight) {
+    const editBtn = noteSection.querySelector('.edit-note');
+    editBtn.addEventListener('click', () => {
+        const currentNote = highlight.note;
+        noteSection.innerHTML = `
+            <div class="note-header">
+                <span class="note-label">Edit note</span>
+                <div class="edit-actions">
+                    <button class="cancel-edit">Cancel</button>
+                    <button class="save-note">Save</button>
+                </div>
+            </div>
+            <textarea class="note-input">${currentNote}</textarea>
+        `;
+        
+        const cancelBtn = noteSection.querySelector('.cancel-edit');
+        const saveBtn = noteSection.querySelector('.save-note');
+        const noteInput = noteSection.querySelector('.note-input');
+        
+        cancelBtn.addEventListener('click', () => {
+            noteSection.innerHTML = `
+                <div class="note-header">
+                    <span class="note-label">Note</span>
+                    <button class="edit-note">Edit</button>
+                </div>
+                <div class="saved-note">${currentNote}</div>
+            `;
+            setupEditNoteHandler(noteSection, highlight);
+        });
+        
+        saveBtn.addEventListener('click', async () => {
+            const noteText = noteInput.value.trim();
+            if (!noteText) return;
+            
+            await saveNote(highlight, noteText);
+            noteSection.innerHTML = `
+                <div class="note-header">
+                    <span class="note-label">Note</span>
+                    <button class="edit-note">Edit</button>
+                </div>
+                <div class="saved-note">${noteText}</div>
+            `;
+            setupEditNoteHandler(noteSection, highlight);
+        });
+    });
+}
+
+// Update search functionality to search through highlight text
 document.getElementById('search').addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    if (currentView === 'pages') {
-        const filtered = allHighlights.filter(h => 
-            h.text.toLowerCase().includes(searchTerm) ||
-            h.title.toLowerCase().includes(searchTerm)
-        );
-        displayPagesList(filtered);
+    const searchTerm = e.target.value.toLowerCase().trim();
+    
+    if (searchTerm === '') {
+        // Reset to show all highlights when search is cleared
+        document.getElementById('pages-view').classList.remove('hidden');
+        document.getElementById('page-highlights-view').classList.add('hidden');
+        displayPagesList();
+        return;
     }
+
+    // Filter highlights that match the search term
+    const filteredHighlights = allHighlights.filter(h => 
+        h.text.toLowerCase().includes(searchTerm) ||
+        h.title.toLowerCase().includes(searchTerm)
+    );
+
+    // Group filtered highlights by URL
+    const filteredGroups = filteredHighlights.reduce((acc, highlight) => {
+        if (!acc[highlight.url]) {
+            acc[highlight.url] = {
+                title: highlight.title,
+                url: highlight.url,
+                highlights: [],
+                favicon: `https://www.google.com/s2/favicons?domain=${new URL(highlight.url).hostname}`,
+                date: new Date(highlight.timestamp),
+                noteCount: 0
+            };
+        }
+        acc[highlight.url].highlights.push(highlight);
+        // Count notes for this page
+        if (highlight.note) {
+            acc[highlight.url].noteCount++;
+        }
+        return acc;
+    }, {});
+
+    // Update the display with filtered results
+    const todaySection = document.getElementById('today-section');
+    const todayHighlights = document.getElementById('today-highlights');
+    todayHighlights.innerHTML = '';
+    
+    Object.values(filteredGroups).forEach(page => {
+        const pageEntry = document.createElement('div');
+        pageEntry.className = 'page-entry';
+        
+        const highlightCount = page.highlights.length;
+        
+        pageEntry.innerHTML = `
+            <div class="page-entry-title">
+                <img src="${page.favicon}" alt="">
+                ${page.title}
+            </div>
+            <div class="page-entry-stats">
+                <span>${highlightCount} Highlight${highlightCount !== 1 ? 's' : ''}</span>
+                <span>${page.noteCount} Note${page.noteCount !== 1 ? 's' : ''}</span>
+            </div>
+        `;
+        
+        pageEntry.addEventListener('click', () => {
+            showPageHighlights(page);
+        });
+        
+        todayHighlights.appendChild(pageEntry);
+    });
+
+    // Show/hide the today section based on results
+    todaySection.style.display = todayHighlights.hasChildNodes() ? 'block' : 'none';
 });
 
 // Initialize

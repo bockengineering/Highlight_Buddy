@@ -1,41 +1,36 @@
 {
     "manifest_version": 3,
-    "name": "Web Highlighter",
+    "name": "AB Highlighter",
     "version": "1.0",
-    "description": "Highlight and save text from web pages",
+    "description": "A simple web highlighter extension",
     "permissions": [
         "storage",
         "activeTab",
-        "sidePanel",
-        "favicon",
-        "scripting"
+        "scripting",
+        "sidePanel"
     ],
-    "host_permissions": [
-        "<all_urls>"
-    ],
-    "background": {
-        "service_worker": "background.js",
-        "type": "module"
-    },
     "action": {
-        "default_title": "Web Highlighter",
         "default_icon": "icon.svg"
     },
-    "side_panel": {
-        "default_path": "sidepanel.html"
-    },
-    "content_scripts": [{
-        "matches": ["<all_urls>"],
-        "js": ["content.js"],
-        "css": ["styles.css"],
-        "run_at": "document_end"
-    }],
     "icons": {
         "16": "icon.svg",
         "32": "icon.svg",
         "48": "icon.svg",
         "128": "icon.svg"
     },
+    "side_panel": {
+        "default_path": "sidepanel.html"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "css": ["styles.css"],
+            "js": ["content.js"]
+        }
+    ],
     "web_accessible_resources": [{
         "resources": ["icon.svg"],
         "matches": ["<all_urls>"]

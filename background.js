@@ -1,11 +1,12 @@
+// Listen for extension icon click
 chrome.action.onClicked.addListener((tab) => {
-  chrome.sidePanel.open({ windowId: tab.windowId });
+    chrome.sidePanel.open({ tabId: tab.id });
 });
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'toggleSidePanel') {
-        chrome.sidePanel.open({ windowId: sender.tab.windowId });
+        chrome.sidePanel.open({ tabId: sender.tab.id });
     }
     
     if (message.action === 'saveHighlight') {

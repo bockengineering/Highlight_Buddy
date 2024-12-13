@@ -101,19 +101,23 @@ body {
     padding: 12px;
     border-bottom: 1px solid #333;
     margin-bottom: 16px;
+    background: #1e1e1e;
 }
 
 .back-button {
-    padding: 8px;
+    padding: 8px 12px;
     border: none;
-    background: none;
-    color: #888;
+    background: #2d2d2d;
+    color: #fff;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 13px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    font-weight: 500;
 }
 
 .back-button:hover {
-    color: #ffffff;
+    background: #363636;
 }
 
 .page-title {
@@ -157,6 +161,96 @@ body {
     color: #ffffff;
     line-height: 1.5;
     margin-bottom: 8px;
+}
+
+.note-section {
+    margin-top: 8px;
+    padding: 8px;
+    background: #363636;
+    border-radius: 4px;
+}
+
+.note-section.collapsed {
+    background: transparent;
+    padding: 4px 0;
+}
+
+.note-input {
+    width: 100%;
+    background: #2d2d2d;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 8px;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+    margin-top: 4px;
+}
+
+.note-input.hidden {
+    display: none;
+}
+
+.note-input:focus {
+    outline: none;
+    border-color: #666;
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.note-label {
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
+}
+
+.note-label:hover {
+    color: #aaa;
+}
+
+.save-note, .edit-note, .cancel-edit {
+    padding: 4px 8px;
+    background: #4a4a4a;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.save-note.hidden {
+    display: none;
+}
+
+.save-note:hover, .edit-note:hover, .cancel-edit:hover {
+    background: #555;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.cancel-edit {
+    background: #3a3a3a;
+}
+
+.cancel-edit:hover {
+    background: #444;
+}
+
+.saved-note {
+    font-size: 13px;
+    color: #ddd;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    margin-top: 8px;
 }
 
 .entry-meta {

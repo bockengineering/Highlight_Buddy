@@ -19,7 +19,8 @@
         "128": "icon.svg"
     },
     "side_panel": {
-        "default_path": "sidepanel.html"
+        "default_path": "sidepanel.html",
+        "default_width": 350
     },
     "background": {
         "service_worker": "background.js"

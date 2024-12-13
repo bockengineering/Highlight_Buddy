@@ -19,9 +19,13 @@
             <div class="nav-icon" data-view="search">
                 <img src="icons/search.svg" alt="Search">
             </div>
-            <div class="nav-icon" style="margin-left: auto;">
-                <img src="icons/bell.svg" alt="Notifications">
-            </div>
+            <button class="export-button" title="Export highlights">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L17 8H13V16H11V8H7L12 3Z" fill="currentColor"/>
+                    <path d="M19 21H5C4.44772 21 4 20.5523 4 20V10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M20 10V20C20 20.5523 19.5523 21 19 21" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </button>
         </div>
         
         <div class="header">
@@ -33,7 +37,7 @@
         
         <div class="highlights-container">
             <!-- Home View -->
-            <div id="home-view" class="view">
+            <div id="home-view" class="view active">
                 <div class="date-section" id="today-section">
                     <h3>This month</h3>
                     <div id="today-highlights"></div>
@@ -41,25 +45,26 @@
             </div>
             
             <!-- Tags View -->
-            <div id="tags-view" class="view hidden">
+            <div id="tags-view" class="view">
                 <div class="color-filters">
-                    <div class="color-filter" style="--filter-color: #ffeb3b">Yellow</div>
-                    <div class="color-filter" style="--filter-color: #4caf50">Green</div>
-                    <div class="color-filter" style="--filter-color: #2196f3">Blue</div>
-                    <div class="color-filter" style="--filter-color: #9c27b0">Purple</div>
-                    <div class="color-filter" style="--filter-color: #f44336">Red</div>
-                    <div class="color-filter" style="--filter-color: #ff9800">Orange</div>
+                    <button class="color-filter active" data-color="all">All Colors</button>
+                    <button class="color-filter" data-color="#ffeb3b" style="--filter-color: #ffeb3b">Yellow</button>
+                    <button class="color-filter" data-color="#4caf50" style="--filter-color: #4caf50">Green</button>
+                    <button class="color-filter" data-color="#2196f3" style="--filter-color: #2196f3">Blue</button>
+                    <button class="color-filter" data-color="#9c27b0" style="--filter-color: #9c27b0">Purple</button>
+                    <button class="color-filter" data-color="#f44336" style="--filter-color: #f44336">Red</button>
+                    <button class="color-filter" data-color="#ff9800" style="--filter-color: #ff9800">Orange</button>
                 </div>
                 <div id="color-filtered-highlights"></div>
             </div>
             
             <!-- Notes View -->
-            <div id="notes-view" class="view hidden">
+            <div id="notes-view" class="view">
                 <div id="notes-list"></div>
             </div>
             
             <!-- Page Highlights View -->
-            <div id="page-highlights-view" class="view hidden">
+            <div id="page-highlights-view" class="view">
                 <div class="page-header">
                     <button class="back-button">Back</button>
                     <h2 class="page-title"></h2>

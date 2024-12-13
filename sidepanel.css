@@ -451,13 +451,15 @@ body {
     gap: 8px;
     padding: 12px;
     margin-bottom: 16px;
+    background: #2d2d2d;
+    border-radius: 8px;
 }
 
 .color-filter {
     flex: 1;
-    min-width: 100px;
+    min-width: 80px;
     padding: 8px 12px;
-    background: var(--filter-color);
+    border: none;
     border-radius: 4px;
     color: #000;
     font-size: 13px;
@@ -465,16 +467,28 @@ body {
     text-align: center;
     cursor: pointer;
     opacity: 0.7;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+}
+
+.color-filter[data-color="all"] {
+    background: #ffffff;
+    color: #000;
+    min-width: 100%;
+}
+
+.color-filter:not([data-color="all"]) {
+    background: var(--filter-color);
 }
 
 .color-filter:hover {
     opacity: 1;
+    transform: translateY(-1px);
 }
 
 .color-filter.active {
     opacity: 1;
     box-shadow: 0 0 0 2px #fff;
+    transform: translateY(-1px);
 }
 
 /* View transitions */
@@ -484,4 +498,26 @@ body {
 
 .view.active {
     display: block;
+}
+
+.export-button {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0.7;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.export-button:hover {
+    background: #2d2d2d;
+    opacity: 1;
 } 

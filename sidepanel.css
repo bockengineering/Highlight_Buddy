@@ -141,6 +141,7 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 12px;
+    padding-bottom: 36px;
 }
 
 .date-section {
@@ -447,48 +448,124 @@ body {
 /* Color filter styles */
 .color-filters {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
-    padding: 12px;
-    margin-bottom: 16px;
-    background: #2d2d2d;
-    border-radius: 8px;
+    padding: 16px;
+}
+
+.color-filter[data-color="all"] {
+    width: 100%;
+    padding: 8px;
+    background: #ffffff;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.color-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .color-filter {
     flex: 1;
-    min-width: 80px;
     padding: 8px 12px;
     border: none;
     border-radius: 4px;
-    color: #000;
+    background: var(--filter-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+}
+
+.filter-label {
+    color: rgba(0, 0, 0, 0.8);
     font-size: 13px;
     font-weight: 500;
-    text-align: center;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.edit-label-button {
+    padding: 4px 8px;
+    background: #404040;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
     cursor: pointer;
-    opacity: 0.7;
+    font-size: 12px;
+    opacity: 0.8;
     transition: all 0.2s;
 }
 
-.color-filter[data-color="all"] {
-    background: #ffffff;
-    color: #000;
-    min-width: 100%;
-}
-
-.color-filter:not([data-color="all"]) {
-    background: var(--filter-color);
-}
-
-.color-filter:hover {
+.edit-label-button:hover {
     opacity: 1;
-    transform: translateY(-1px);
+    background: #505050;
 }
 
 .color-filter.active {
-    opacity: 1;
     box-shadow: 0 0 0 2px #fff;
-    transform: translateY(-1px);
+}
+
+/* Style for the edit label modal */
+.edit-label-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2d2d2d;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-width: 240px;
+    text-align: center;
+}
+
+.edit-label-modal input {
+    width: 100%;
+    padding: 8px;
+    background: #363636;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    color: #fff;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.edit-label-modal .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.edit-label-modal button {
+    min-width: 80px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.2s;
+}
+
+.edit-label-modal .save-edit {
+    background: #4caf50;
+    color: white;
+}
+
+.edit-label-modal .cancel-edit {
+    background: #666;
+    color: white;
+}
+
+.edit-label-modal button:hover {
+    filter: brightness(1.1);
 }
 
 /* View transitions */
@@ -500,6 +577,13 @@ body {
     display: block;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.import-button,
 .export-button {
     width: 32px;
     height: 32px;
@@ -514,10 +598,281 @@ body {
     color: #fff;
     opacity: 0.7;
     transition: all 0.2s;
-    margin-left: auto;
 }
 
+.import-button:hover,
 .export-button:hover {
     background: #2d2d2d;
     opacity: 1;
-} 
+}
+
+/* Remove old export button styles */
+.export-button {
+    margin-left: 0;
+}
+
+.backup-timestamp {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px;
+    background: #1e1e1e;
+    color: #666;
+    font-size: 11px;
+    text-align: center;
+    border-top: 1px solid #333;
+}
+
+/* Review view styles */
+.review-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 110px);
+    gap: 16px;
+}
+
+.review-card {
+    flex: 1;
+    background: #2d2d2d;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.highlight-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.highlight-source {
+    font-size: 14px;
+    color: #888;
+    padding-top: 16px;
+    border-top: 1px solid #404040;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.source-favicon {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+}
+
+.source-title {
+    color: #fff;
+    text-decoration: none;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.source-title:hover {
+    text-decoration: underline;
+}
+
+.review-actions {
+    display: flex;
+    gap: 16px;
+    padding: 0;
+    margin-top: auto;
+}
+
+.review-button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.review-button.remember {
+    background: #4caf50;
+    color: white;
+}
+
+.review-button.nope {
+    background: #f44336;
+    color: white;
+}
+
+.review-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.review-button:active {
+    transform: translateY(0);
+}
+
+/* Add these styles for the note section in review view */
+.review-card .note-section {
+    margin: 12px 0;
+    padding: 8px;
+    background: #363636;
+    border-radius: 8px;
+}
+
+.review-card .note-section.collapsed {
+    background: transparent;
+    padding: 4px 0;
+}
+
+.review-card .note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.review-card .note-label {
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
+}
+
+.review-card .note-label:hover {
+    color: #aaa;
+}
+
+.review-card .note-input {
+    width: 100%;
+    background: #2d2d2d;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 8px;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.review-card .note-input.hidden {
+    display: none;
+}
+
+.review-card .note-input:focus {
+    outline: none;
+    border-color: #666;
+}
+
+.review-card .saved-note {
+    font-size: 13px;
+    color: #ddd;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.review-card .edit-note,
+.review-card .save-note,
+.review-card .cancel-edit {
+    padding: 4px 8px;
+    background: #4a4a4a;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.review-card .edit-note:hover,
+.review-card .save-note:hover,
+.review-card .cancel-edit:hover {
+    background: #555;
+}
+
+.review-card .cancel-edit {
+    background: #3a3a3a;
+}
+
+.review-card .edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.review-card .save-note.hidden {
+    display: none;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+/* Add styles for import dropdown */
+.import-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.import-options {
+    display: none;
+    position: absolute;
+    background: #2d2d2d;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    min-width: 160px;
+}
+
+.import-dropdown:hover .import-options {
+    display: block;
+}
+
+.import-options button {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.import-options button:hover {
+    background: #404040;
+}
+
+.backup-button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #fff;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.backup-button:hover {
+    opacity: 1;
+}
+
+.backup-button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.loading {
+    font-size: 12px;
+}

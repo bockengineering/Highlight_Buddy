@@ -9,6 +9,9 @@
         "scripting",
         "sidePanel"
     ],
+    "host_permissions": [
+        "https://api.notion.com/*"
+    ],
     "action": {
         "default_icon": "icon.svg"
     },

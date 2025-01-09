@@ -19,13 +19,39 @@
             <div class="nav-icon" data-view="search">
                 <img src="icons/search.svg" alt="Search">
             </div>
-            <button class="export-button" title="Export highlights">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 3L17 8H13V16H11V8H7L12 3Z" fill="currentColor"/>
-                    <path d="M19 21H5C4.44772 21 4 20.5523 4 20V10" stroke="currentColor" stroke-width="2"/>
-                    <path d="M20 10V20C20 20.5523 19.5523 21 19 21" stroke="currentColor" stroke-width="2"/>
-                </svg>
-            </button>
+            <div class="nav-icon" data-view="review">
+                <img src="icons/brain.svg" alt="Review">
+            </div>
+            <div class="action-buttons">
+                <div class="import-dropdown">
+                    <button class="import-button" title="Import highlights">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 16L7 11H11V3H13V11H17L12 16Z" fill="currentColor"/>
+                            <path d="M19 21H5C4.44772 21 4 20.5523 4 20V10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M20 10V20C20 20.5523 19.5523 21 19 21" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </button>
+                    <div class="import-options">
+                        <input type="file" id="import-file" accept=".csv" style="display: none;">
+                        <button class="import-file-btn">Import from File</button>
+                        <button class="import-notion-btn">Import from Notion</button>
+                    </div>
+                </div>
+                <button class="export-button" title="Export highlights">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L17 8H13V16H11V8H7L12 3Z" fill="currentColor"/>
+                        <path d="M19 21H5C4.44772 21 4 20.5523 4 20V10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M20 10V20C20 20.5523 19.5523 21 19 21" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="backup-button" title="Backup to Notion">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         
         <div class="header">
@@ -48,12 +74,42 @@
             <div id="tags-view" class="view">
                 <div class="color-filters">
                     <button class="color-filter active" data-color="all">All Colors</button>
-                    <button class="color-filter" data-color="#ffeb3b" style="--filter-color: #ffeb3b">Yellow</button>
-                    <button class="color-filter" data-color="#4caf50" style="--filter-color: #4caf50">Green</button>
-                    <button class="color-filter" data-color="#2196f3" style="--filter-color: #2196f3">Blue</button>
-                    <button class="color-filter" data-color="#9c27b0" style="--filter-color: #9c27b0">Purple</button>
-                    <button class="color-filter" data-color="#f44336" style="--filter-color: #f44336">Red</button>
-                    <button class="color-filter" data-color="#ff9800" style="--filter-color: #ff9800">Orange</button>
+                    <div class="color-filter-group" data-color="#ffeb3b">
+                        <button class="color-filter" style="--filter-color: #ffeb3b">
+                            <span class="filter-label">Yellow</span>
+                        </button>
+                        <button class="edit-label-button">Edit</button>
+                    </div>
+                    <div class="color-filter-group" data-color="#4caf50">
+                        <button class="color-filter" style="--filter-color: #4caf50">
+                            <span class="filter-label">Green</span>
+                        </button>
+                        <button class="edit-label-button">Edit</button>
+                    </div>
+                    <div class="color-filter-group" data-color="#2196f3">
+                        <button class="color-filter" style="--filter-color: #2196f3">
+                            <span class="filter-label">Blue</span>
+                        </button>
+                        <button class="edit-label-button">Edit</button>
+                    </div>
+                    <div class="color-filter-group" data-color="#9c27b0">
+                        <button class="color-filter" style="--filter-color: #9c27b0">
+                            <span class="filter-label">Purple</span>
+                        </button>
+                        <button class="edit-label-button">Edit</button>
+                    </div>
+                    <div class="color-filter-group" data-color="#f44336">
+                        <button class="color-filter" style="--filter-color: #f44336">
+                            <span class="filter-label">Red</span>
+                        </button>
+                        <button class="edit-label-button">Edit</button>
+                    </div>
+                    <div class="color-filter-group" data-color="#ff9800">
+                        <button class="color-filter" style="--filter-color: #ff9800">
+                            <span class="filter-label">Orange</span>
+                        </button>
+                        <button class="edit-label-button">Edit</button>
+                    </div>
                 </div>
                 <div id="color-filtered-highlights"></div>
             </div>
@@ -71,7 +127,22 @@
                 </div>
                 <div id="page-highlights" class="highlights-list"></div>
             </div>
+            
+            <!-- Review View -->
+            <div id="review-view" class="view">
+                <div class="review-container">
+                    <div class="review-card">
+                        <div class="highlight-text"></div>
+                        <div class="highlight-source"></div>
+                    </div>
+                    <div class="review-actions">
+                        <button class="review-button remember">I Remember</button>
+                        <button class="review-button nope">Nope</button>
+                    </div>
+                </div>
+            </div>
         </div>
+        <div class="backup-timestamp">Last backup: Never</div>
     </div>
     <script src="sidepanel.js"></script>
 </body>

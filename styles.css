@@ -67,20 +67,56 @@
     border-radius: 8px;
     background: #2d2d2d;
     border: none;
-    cursor: pointer;
+    cursor: grab;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 999999;
+    touch-action: none;
+    user-select: none;
   }
   
-  .side-panel-button:hover {
-    background: #363636;
+  .side-panel-button:active {
+    cursor: grabbing;
   }
   
   .side-panel-button img {
     width: 24px;
     height: 24px;
     opacity: 0.8;
+    pointer-events: none;
+  }
+  
+  .ab-highlighter-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    background: #4caf50;
+    color: white;
+    border-radius: 4px;
+    z-index: 10000;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    animation: toast-in 0.3s ease-out;
+  }
+  
+  .ab-highlighter-toast.error {
+    background: #f44336;
+  }
+  
+  .ab-highlighter-toast.warning {
+    background: #ff9800;
+  }
+  
+  @keyframes toast-in {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
   }
